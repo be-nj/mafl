@@ -1,3 +1,20 @@
+> [!NOTE]
+> **This is the `integration` branch of a fork.** It bundles [hywax/mafl](https://github.com/hywax/mafl) `main` with four open upstream PRs:
+> [#188](https://github.com/hywax/mafl/pull/188) custom background images ·
+> [#190](https://github.com/hywax/mafl/pull/190) icons from Docker volume mounts ·
+> [#192](https://github.com/hywax/mafl/pull/192) separate status URL from service link ·
+> [#193](https://github.com/hywax/mafl/pull/193) icon aspect-ratio fix
+>
+> A multi-arch image (amd64/arm64) is published on every push:
+>
+> ```yaml
+> services:
+>   mafl:
+>     image: ghcr.io/be-nj/mafl:integration
+> ```
+>
+> Immutable per-commit tags are available as `integration-<sha>`. Once the PRs are merged upstream, use the official `hywax/mafl` image instead.
+
 <h1 align="center">Mafl</h1>
 <p align="center">
   <i>Mafl is an intuitive service for organizing your homepage. Customize Mafl to your individual needs and work even more efficiently!</i>
