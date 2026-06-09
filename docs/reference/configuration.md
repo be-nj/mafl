@@ -39,7 +39,7 @@ Default: `system`
 
 ## Background
 
-You can customize background: 
+You can customize background:
 
 ### Image
 

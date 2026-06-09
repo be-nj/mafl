@@ -1,5 +1,6 @@
 import { createReadStream, promises as fs } from 'node:fs'
 import { extname, join, normalize } from 'node:path'
+import process from 'node:process'
 import { sendStream, setHeader } from 'h3'
 import { useLogger } from '~/server/utils/logger'
 
@@ -37,7 +38,7 @@ export default defineEventHandler(async (event) => {
 
   const fullPath = join(iconsBaseDir, normalize(decodedPath))
 
-  if (!fullPath.startsWith(iconsBaseDir + '/')) {
+  if (!fullPath.startsWith(`${iconsBaseDir}/`)) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid path' })
   }
 
