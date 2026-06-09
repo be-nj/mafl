@@ -49,6 +49,10 @@
     "vue-tsc": "^2.1.10"
   },
   "resolutions": {
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "@typescript-eslint/utils": "^8.15.0",
+    "eslint-visitor-keys": "^4.2.0",
     "rollup": "npm:@rollup/wasm-node"
   },
   "lint-staged": {
