@@ -4,8 +4,8 @@
       {{ title }}
     </h2>
     <div :class="gridClasses">
-      <template v-for="item in items" :key="item.id">
-        <Item v-bind="item" />
+      <template v-for="(item, index) in items" :key="item.id">
+        <Item v-bind="item" :group-index="groupIndex" :index="index" />
       </template>
     </div>
   </div>
@@ -18,6 +18,7 @@ export interface Props {
   title?: string
   items: Service[]
   grid: Layout['grid']
+  groupIndex?: number
 }
 
 const props = defineProps<Props>()

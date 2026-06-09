@@ -1,4 +1,7 @@
 import crypto from 'node:crypto'
+import { rename, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import process from 'node:process'
 import yaml from 'yaml'
 import defu from 'defu'
 import { ZodError } from 'zod'
@@ -29,6 +32,19 @@ function determineService(items: DraftService[], tags: TagMap): Service[] {
 }
 
 export const configFileName = 'config.yml'
+
+/**
+ * Atomically overwrite the config file (write to a temp file, then rename).
+ * The rename is what the storage watcher observes, so clients never read a
+ * half-written file. The `data` storage base is `./data` (see nuxt.config).
+ */
+export async function writeConfigFile(content: string): Promise<void> {
+  const path = join(process.cwd(), 'data', configFileName)
+  const tmp = `${path}.${crypto.randomUUID()}.tmp`
+
+  await writeFile(tmp, content, 'utf8')
+  await rename(tmp, path)
+}
 
 export function getDefaultConfig(): CompleteConfig {
   return {

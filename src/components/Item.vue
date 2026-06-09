@@ -12,7 +12,10 @@
 import ServicePlaceholder from './service/Placeholder.vue'
 import type { Service } from '~/types'
 
-const props = defineProps<Service>()
+const props = defineProps<Service & {
+  groupIndex?: number
+  index?: number
+}>()
 
 // At the moment there is a "flash" problem with the component.
 // It is necessary to fix it and remove manual mapping

@@ -2,6 +2,11 @@ import process from 'node:process'
 
 export default defineNuxtConfig({
   srcDir: 'src',
+  runtimeConfig: {
+    // Token Auth Provider for the inline editor. Empty = editor disabled
+    // (refuse-by-default). Override at runtime with MAFL_ADMIN_TOKEN.
+    adminToken: process.env.MAFL_ADMIN_TOKEN || '',
+  },
   app: {
     head: {
       link: [
