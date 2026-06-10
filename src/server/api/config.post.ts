@@ -15,8 +15,10 @@ type EditOp =
   | { type: 'set-secret', groupIndex: number | null, index: number, key: string, value: string }
   | { type: 'add-service', groupIndex: number | null }
   | { type: 'delete-service', groupIndex: number | null, index: number }
+  | { type: 'move-service', fromGroup: number | null, fromIndex: number, toGroup: number | null, toIndex: number }
   | { type: 'add-group', title?: string }
   | { type: 'rename-group', groupIndex: number, title: string }
+  | { type: 'move-group', fromIndex: number, toIndex: number }
   | { type: 'delete-group', groupIndex: number }
 
 interface OpEnvelope {
@@ -67,6 +69,30 @@ function applyOp(doc: Record<string, any>, op: EditOp): void {
     return
   }
 
+  if (op.type === 'move-group') {
+    const { services } = doc
+
+    if (!services || typeof services !== 'object' || Array.isArray(services)) {
+      throw createError({ statusCode: 400, statusMessage: 'No named groups' })
+    }
+
+    const keys = Object.keys(services)
+    const [key] = keys.splice(op.fromIndex, 1)
+
+    if (key == null) {
+      throw createError({ statusCode: 404, statusMessage: 'Group not found' })
+    }
+
+    keys.splice(op.toIndex, 0, key)
+    doc.services = keys.reduce<Record<string, any>>((acc, k) => {
+      acc[k] = services[k]
+
+      return acc
+    }, {})
+
+    return
+  }
+
   if (op.type === 'rename-group' || op.type === 'delete-group') {
     const { services } = doc
 
@@ -103,6 +129,20 @@ function applyOp(doc: Record<string, any>, op: EditOp): void {
 
       return acc
     }, {})
+
+    return
+  }
+
+  if (op.type === 'move-service') {
+    const from = groupItems(doc, op.fromGroup)
+    const to = groupItems(doc, op.toGroup)
+
+    if (!from || !to || op.fromIndex < 0 || op.fromIndex >= from.length) {
+      throw createError({ statusCode: 404, statusMessage: 'Service not found at that position' })
+    }
+
+    const [moved] = from.splice(op.fromIndex, 1)
+    to.splice(Math.max(0, Math.min(op.toIndex, to.length)), 0, moved)
 
     return
   }

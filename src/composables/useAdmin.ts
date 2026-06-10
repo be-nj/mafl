@@ -20,6 +20,8 @@ export function useAdmin() {
   const nuxtApp = useNuxtApp()
   const mayEdit = useState('admin:mayEdit', () => false)
   const editMode = useState('admin:editMode', () => false)
+  // Shared drag source for native HTML5 drag-and-drop reordering.
+  const dragSource = useState<{ kind: 'service' | 'group', groupIndex: number | null, index: number } | null>('admin:drag', () => null)
 
   function getToken(): string {
     return import.meta.client ? localStorage.getItem(TOKEN_KEY) || '' : ''
@@ -131,6 +133,14 @@ export function useAdmin() {
     return sendOp({ type: 'delete-service', groupIndex, index })
   }
 
+  function moveService(fromGroup: number | null, fromIndex: number, toGroup: number | null, toIndex: number): Promise<void> {
+    return sendOp({ type: 'move-service', fromGroup, fromIndex, toGroup, toIndex })
+  }
+
+  function moveGroup(fromIndex: number, toIndex: number): Promise<void> {
+    return sendOp({ type: 'move-group', fromIndex, toIndex })
+  }
+
   function deleteGroup(groupIndex: number): Promise<void> {
     return sendOp({ type: 'delete-group', groupIndex })
   }
@@ -146,6 +156,7 @@ export function useAdmin() {
   return {
     mayEdit,
     editMode,
+    dragSource,
     verify,
     enter,
     leave,
@@ -157,8 +168,10 @@ export function useAdmin() {
     uploadIcon,
     addService,
     deleteService,
+    moveService,
     deleteGroup,
     addGroup,
     renameGroup,
+    moveGroup,
   }
 }

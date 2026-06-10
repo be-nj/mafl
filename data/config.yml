@@ -1,5 +1,15 @@
 title: Verify Run
 services:
+  Tools:
+    - title: Jellyfin
+      description: Streaming
+      link: https://jelly.example.com
+      icon:
+        name: simple-icons:jellyfin
+        color: "#00a4dc"
+    - title: Router
+      description: Network
+      link: https://router.lan
   Media:
     - title: Plex
       description: Media server
@@ -7,14 +17,8 @@ services:
       icon:
         name: simple-icons:plex
         color: "#e5a00d"
-    - title: Jellyfin
-      description: Streaming
-      link: https://jelly.example.com
-      icon:
-        name: simple-icons:jellyfin
-        color: "#00a4dc"
-    - title: New service
-  Tools:
-    - title: Router
-      description: Network
-      link: https://router.lan
+      status:
+        enabled: true
+        url: https://plex.example.com
+      secrets:
+        apiKey: ROTATED-KEY-999

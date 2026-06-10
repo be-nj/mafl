@@ -1,6 +1,20 @@
 <template>
   <div class="py-10">
-    <h2 v-if="title" class="text-2xl font-light py-2 px-4 flex items-center gap-2">
+    <h2
+      v-if="title"
+      class="text-2xl font-light py-2 px-4 flex items-center gap-2"
+      @dragover.prevent
+      @drop="onGroupDrop"
+    >
+      <span
+        v-if="editMode && groupIndex != null"
+        class="cursor-grab select-none text-fg-dimmed hover:text-fg text-base"
+        draggable="true"
+        title="Drag group"
+        @dragstart="onGroupDragStart"
+      >
+        ⠿
+      </span>
       <input
         v-if="editMode && groupIndex != null"
         v-model="groupTitleDraft"
@@ -21,7 +35,22 @@
       </button>
     </h2>
     <div :class="gridClasses">
-      <div v-for="(item, index) in items" :key="item.id" class="relative">
+      <div
+        v-for="(item, index) in items"
+        :key="item.id"
+        class="relative"
+        @dragover.prevent
+        @drop="onCardDrop(index)"
+      >
+        <span
+          v-if="editMode"
+          class="absolute top-2 left-2 z-10 cursor-grab select-none text-fg-dimmed hover:text-fg"
+          draggable="true"
+          title="Drag to reorder"
+          @dragstart="onCardDragStart(index, $event)"
+        >
+          ⠿
+        </span>
         <Item v-bind="item" :group-index="groupIndex" :index="index" />
         <button
           v-if="editMode"
@@ -55,7 +84,45 @@ export interface Props {
 
 const props = defineProps<Props>()
 
-const { editMode, addService, deleteService, deleteGroup, renameGroup } = useAdmin()
+const { editMode, addService, deleteService, deleteGroup, renameGroup, moveService, moveGroup, dragSource } = useAdmin()
+
+function onCardDragStart(index: number, event: DragEvent) {
+  dragSource.value = { kind: 'service', groupIndex: props.groupIndex ?? null, index }
+
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+  }
+}
+
+function onCardDrop(index: number) {
+  const source = dragSource.value
+  dragSource.value = null
+
+  if (source?.kind === 'service' && !(source.groupIndex === (props.groupIndex ?? null) && source.index === index)) {
+    moveService(source.groupIndex, source.index, props.groupIndex ?? null, index)
+  }
+}
+
+function onGroupDragStart(event: DragEvent) {
+  if (props.groupIndex == null) {
+    return
+  }
+
+  dragSource.value = { kind: 'group', groupIndex: props.groupIndex, index: props.groupIndex }
+
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+  }
+}
+
+function onGroupDrop() {
+  const source = dragSource.value
+  dragSource.value = null
+
+  if (source?.kind === 'group' && props.groupIndex != null && source.index !== props.groupIndex) {
+    moveGroup(source.index, props.groupIndex)
+  }
+}
 
 const groupTitleDraft = ref(props.title ?? '')
 watch(() => props.title, (value) => {
