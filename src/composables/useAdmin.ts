@@ -102,6 +102,10 @@ export function useAdmin() {
     return sendOp({ type: 'set-status', groupIndex, index, status })
   }
 
+  function setIcon(groupIndex: number | null, index: number, icon: Record<string, unknown>): Promise<void> {
+    return sendOp({ type: 'set-icon', groupIndex, index, icon })
+  }
+
   function addService(groupIndex: number | null): Promise<void> {
     return sendOp({ type: 'add-service', groupIndex })
   }
@@ -131,6 +135,7 @@ export function useAdmin() {
     saveField,
     setTags,
     setStatus,
+    setIcon,
     addService,
     deleteService,
     deleteGroup,

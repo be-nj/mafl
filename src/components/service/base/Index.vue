@@ -4,7 +4,13 @@
     <div class="flex-shrink-0 flex">
       <div class="self-center w-16 h-16 overflow-hidden">
         <slot name="icon" :service="data">
-          <ServiceBaseIcon v-if="icon" v-bind="icon" />
+          <AdminIconPicker
+            v-if="editMode && index != null"
+            :group-index="groupIndex"
+            :index="index"
+            :icon="icon"
+          />
+          <ServiceBaseIcon v-else-if="icon" v-bind="icon" />
         </slot>
       </div>
     </div>

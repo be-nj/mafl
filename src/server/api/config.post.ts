@@ -11,6 +11,7 @@ type EditOp =
   | { type: 'set-field', groupIndex: number | null, index: number, field: string, value: unknown }
   | { type: 'set-tags', groupIndex: number | null, index: number, tags: string[] }
   | { type: 'set-status', groupIndex: number | null, index: number, status: Record<string, unknown> }
+  | { type: 'set-icon', groupIndex: number | null, index: number, icon: Record<string, unknown> }
   | { type: 'add-service', groupIndex: number | null }
   | { type: 'delete-service', groupIndex: number | null, index: number }
   | { type: 'add-group', title?: string }
@@ -148,6 +149,26 @@ function applyOp(doc: Record<string, any>, op: EditOp): void {
   if (op.type === 'set-status') {
     // Merge the patch; the full-schema parse validates status via statusSchema.
     target.status = { ...(target.status as object || {}), ...op.status }
+
+    return
+  }
+
+  if (op.type === 'set-icon') {
+    const icon: Record<string, unknown> = { ...(target.icon as object || {}) }
+
+    for (const [key, value] of Object.entries(op.icon)) {
+      if (value === '' || value == null) {
+        delete icon[key]
+      } else {
+        icon[key] = value
+      }
+    }
+
+    if (Object.keys(icon).length) {
+      target.icon = icon
+    } else {
+      delete target.icon
+    }
 
     return
   }
