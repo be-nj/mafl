@@ -91,6 +91,7 @@ function onCardDragStart(index: number, event: DragEvent) {
 
   if (event.dataTransfer) {
     event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', 'service') // required for drag to start in some browsers
   }
 }
 
@@ -112,6 +113,7 @@ function onGroupDragStart(event: DragEvent) {
 
   if (event.dataTransfer) {
     event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', 'group') // required for drag to start in some browsers
   }
 }
 

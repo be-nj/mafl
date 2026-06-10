@@ -1,16 +1,11 @@
 title: Verify Run
 services:
-  Tools:
-    - title: Jellyfin
-      description: Streaming
-      link: https://jelly.example.com
-      icon:
-        name: simple-icons:jellyfin
-        color: "#00a4dc"
-    - title: Router
-      description: Network
-      link: https://router.lan
   Media:
+    - title: Immich Kiosk
+      description: lol
+      status:
+        enabled: true
+        url: http://diana.home:3000
     - title: Plex
       description: Media server
       link: https://plex.example.com
@@ -22,3 +17,13 @@ services:
         url: https://plex.example.com
       secrets:
         apiKey: ROTATED-KEY-999
+  Tools:
+    - title: Jellyfin
+      description: Streaming
+      link: https://jelly.example.com
+      icon:
+        name: simple-icons:jellyfin
+        color: "#00a4dc"
+    - title: Router
+      description: Network
+      link: https://router.lan

@@ -10,6 +10,17 @@ export interface FieldEditOp {
 }
 
 /**
+ * Admin token header for outbound requests. The token lives in localStorage
+ * and is only ever sent, never received. Module-level so the config plugin can
+ * reuse it when reactively refetching settings.
+ */
+export function adminHeaders(): Record<string, string> {
+  const token = import.meta.client ? localStorage.getItem(TOKEN_KEY) || '' : ''
+
+  return token ? { 'x-mafl-admin-token': token } : {}
+}
+
+/**
  * Client-side Admin state for the inline editor.
  *
  * The admin token lives in localStorage and is only ever SENT (as a header),
@@ -23,15 +34,10 @@ export function useAdmin() {
   // Shared drag source for native HTML5 drag-and-drop reordering.
   const dragSource = useState<{ kind: 'service' | 'group', groupIndex: number | null, index: number } | null>('admin:drag', () => null)
 
-  function getToken(): string {
-    return import.meta.client ? localStorage.getItem(TOKEN_KEY) || '' : ''
-  }
-
-  function headers(): Record<string, string> {
-    const token = getToken()
-
-    return token ? { 'x-mafl-admin-token': token } : {}
-  }
+  const headers = adminHeaders
+  // Reactively refetch the dashboard config (provided by the settings plugin)
+  // instead of doing a hard page reload, so editing keeps focus/scroll/mode.
+  const refresh = (): void | Promise<void> => (nuxtApp.$refreshConfig as (() => Promise<void>) | undefined)?.()
 
   async function verify(): Promise<boolean> {
     // Always ask the server — a forward-auth admin is identified by a proxy
@@ -58,6 +64,8 @@ export function useAdmin() {
 
     if (ok) {
       editMode.value = true
+      // refetch with the token so secret presence + mayEdit-derived data appear
+      await refresh()
     }
 
     return ok
@@ -82,10 +90,10 @@ export function useAdmin() {
         body: { ...op, baseHash },
       })
     } catch (e) {
-      // Stale base (409): the file changed under us — reload to the new state.
+      // Stale base (409): the file changed under us — refresh to the new state.
       if ((e as { statusCode?: number, response?: { status?: number } })?.statusCode === 409
         || (e as { response?: { status?: number } })?.response?.status === 409) {
-        reloadNuxtApp({ force: true })
+        await refresh()
       }
 
       throw e
