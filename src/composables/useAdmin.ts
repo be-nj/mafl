@@ -70,7 +70,7 @@ export function useAdmin() {
     editMode.value = false
   }
 
-  async function saveField(op: FieldEditOp): Promise<void> {
+  async function sendOp(op: Record<string, unknown>): Promise<void> {
     const baseHash = (nuxtApp.$settings as { configHash?: string })?.configHash
 
     try {
@@ -90,5 +90,21 @@ export function useAdmin() {
     }
   }
 
-  return { mayEdit, editMode, verify, enter, leave, saveField }
+  function saveField(op: FieldEditOp): Promise<void> {
+    return sendOp({ type: 'set-field', ...op })
+  }
+
+  function addService(groupIndex: number | null): Promise<void> {
+    return sendOp({ type: 'add-service', groupIndex })
+  }
+
+  function deleteService(groupIndex: number | null, index: number): Promise<void> {
+    return sendOp({ type: 'delete-service', groupIndex, index })
+  }
+
+  function deleteGroup(groupIndex: number): Promise<void> {
+    return sendOp({ type: 'delete-group', groupIndex })
+  }
+
+  return { mayEdit, editMode, verify, enter, leave, saveField, addService, deleteService, deleteGroup }
 }
