@@ -49,7 +49,23 @@
         @keyup.enter="commitField('link')"
         @blur="commitField('link')"
       >
-      <template v-if="tags.length">
+      <div v-if="editMode && index != null" class="flex flex-wrap gap-1 mt-1 items-center">
+        <span
+          v-for="(tag, key) in tags"
+          :key="key"
+          class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-fg/10"
+        >
+          {{ tagLabel(tag) }}
+          <button class="hover:text-red-500" @click="removeTag(tagLabel(tag))">✕</button>
+        </span>
+        <input
+          v-model="tagDraft"
+          placeholder="+ tag"
+          class="text-xs bg-transparent border-b border-fg/20 w-16 focus:outline-none focus:border-fg"
+          @keyup.enter="addTag"
+        >
+      </div>
+      <template v-else-if="tags.length">
         <ServiceBaseTag
           v-for="(tag, key) in tags"
           :key="key"
@@ -61,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Service, ServiceClient } from '~/types'
+import type { Service, ServiceClient, Tag } from '~/types'
 
 const props = defineProps<ServiceClient<Service> & {
   groupIndex?: number | null
@@ -69,9 +85,47 @@ const props = defineProps<ServiceClient<Service> & {
 }>()
 
 const { $settings } = useNuxtApp()
-const { editMode, saveField } = useAdmin()
+const { editMode, saveField, setTags } = useAdmin()
 const isLink = computed(() => isUrl(props.link || ''))
 const target = computed(() => props.target || $settings.behaviour.target)
+
+const tagDraft = ref('')
+function tagLabel(tag: string | Tag): string {
+  return typeof tag === 'string' ? tag : tag.name
+}
+function tagNames(): string[] {
+  return (props.tags ?? []).map(tagLabel)
+}
+
+async function addTag() {
+  const name = tagDraft.value.trim()
+
+  tagDraft.value = ''
+
+  if (!name || props.index == null || tagNames().includes(name)) {
+    return
+  }
+
+  try {
+    await setTags(props.groupIndex ?? null, props.index, [...tagNames(), name])
+  } catch (e: any) {
+    // eslint-disable-next-line no-alert
+    alert(e?.data?.statusMessage || e?.statusMessage || 'Save failed')
+  }
+}
+
+async function removeTag(name: string) {
+  if (props.index == null) {
+    return
+  }
+
+  try {
+    await setTags(props.groupIndex ?? null, props.index, tagNames().filter((tag) => tag !== name))
+  } catch (e: any) {
+    // eslint-disable-next-line no-alert
+    alert(e?.data?.statusMessage || e?.statusMessage || 'Save failed')
+  }
+}
 
 type EditableField = 'title' | 'description' | 'link'
 

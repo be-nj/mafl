@@ -1,0 +1,20 @@
+title: Verify Run
+services:
+  Media:
+    - title: Plex
+      description: Media server
+      link: https://plex.example.com
+      icon:
+        name: simple-icons:plex
+        color: "#e5a00d"
+    - title: Jellyfin
+      description: Streaming
+      link: https://jelly.example.com
+      icon:
+        name: simple-icons:jellyfin
+        color: "#00a4dc"
+    - title: New service
+  Tools:
+    - title: Router
+      description: Network
+      link: https://router.lan

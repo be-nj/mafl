@@ -9,6 +9,7 @@ import { configSchema } from '~/server/validations'
  */
 type EditOp =
   | { type: 'set-field', groupIndex: number | null, index: number, field: string, value: unknown }
+  | { type: 'set-tags', groupIndex: number | null, index: number, tags: string[] }
   | { type: 'add-service', groupIndex: number | null }
   | { type: 'delete-service', groupIndex: number | null, index: number }
   | { type: 'add-group', title?: string }
@@ -123,6 +124,22 @@ function applyOp(doc: Record<string, any>, op: EditOp): void {
 
   if (op.type === 'delete-service') {
     items.splice(op.index, 1)
+
+    return
+  }
+
+  if (op.type === 'set-tags') {
+    if (!Array.isArray(op.tags) || op.tags.some((tag) => typeof tag !== 'string')) {
+      throw createError({ statusCode: 400, statusMessage: 'Tags must be a list of strings' })
+    }
+
+    const tags = op.tags.map((tag) => tag.trim()).filter(Boolean)
+
+    if (tags.length) {
+      target.tags = tags
+    } else {
+      delete target.tags
+    }
 
     return
   }

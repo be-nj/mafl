@@ -94,6 +94,10 @@ export function useAdmin() {
     return sendOp({ type: 'set-field', ...op })
   }
 
+  function setTags(groupIndex: number | null, index: number, tags: string[]): Promise<void> {
+    return sendOp({ type: 'set-tags', groupIndex, index, tags })
+  }
+
   function addService(groupIndex: number | null): Promise<void> {
     return sendOp({ type: 'add-service', groupIndex })
   }
@@ -121,6 +125,7 @@ export function useAdmin() {
     enter,
     leave,
     saveField,
+    setTags,
     addService,
     deleteService,
     deleteGroup,
