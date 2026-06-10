@@ -13,10 +13,10 @@
         <slot name="title" :service="data">
           <input
             v-if="editMode && index != null"
-            v-model="titleDraft"
+            v-model="drafts.title"
             class="bg-transparent border-b border-fg/30 focus:outline-none focus:border-fg w-full"
-            @keyup.enter="commitTitle"
-            @blur="commitTitle"
+            @keyup.enter="commitField('title')"
+            @blur="commitField('title')"
           >
           <template v-else>
             {{ title }}
@@ -29,9 +29,26 @@
 
       <p class="text-sm text-fg-dimmed line-clamp-1">
         <slot name="description" :service="data">
-          {{ description }}
+          <input
+            v-if="editMode && index != null"
+            v-model="drafts.description"
+            class="bg-transparent border-b border-fg/30 focus:outline-none focus:border-fg w-full"
+            @keyup.enter="commitField('description')"
+            @blur="commitField('description')"
+          >
+          <template v-else>
+            {{ description }}
+          </template>
         </slot>
       </p>
+      <input
+        v-if="editMode && index != null"
+        v-model="drafts.link"
+        placeholder="https://…"
+        class="mt-1 text-xs text-fg-dimmed bg-transparent border-b border-fg/20 focus:outline-none focus:border-fg w-full"
+        @keyup.enter="commitField('link')"
+        @blur="commitField('link')"
+      >
       <template v-if="tags.length">
         <ServiceBaseTag
           v-for="(tag, key) in tags"
@@ -56,16 +73,24 @@ const { editMode, saveField } = useAdmin()
 const isLink = computed(() => isUrl(props.link || ''))
 const target = computed(() => props.target || $settings.behaviour.target)
 
-const titleDraft = ref(props.title ?? '')
+type EditableField = 'title' | 'description' | 'link'
+
+const drafts = reactive({
+  title: props.title ?? '',
+  description: props.description ?? '',
+  link: props.link ?? '',
+})
 const saving = ref(false)
-watch(() => props.title, (value) => {
-  titleDraft.value = value ?? ''
+watch(() => [props.title, props.description, props.link], () => {
+  drafts.title = props.title ?? ''
+  drafts.description = props.description ?? ''
+  drafts.link = props.link ?? ''
 })
 
-async function commitTitle() {
-  const value = titleDraft.value.trim()
+async function commitField(field: EditableField) {
+  const value = drafts[field].trim()
 
-  if (saving.value || props.index == null || value === (props.title ?? '')) {
+  if (saving.value || props.index == null || value === (props[field] ?? '')) {
     return
   }
 
@@ -75,12 +100,12 @@ async function commitTitle() {
     await saveField({
       groupIndex: props.groupIndex ?? null,
       index: props.index,
-      field: 'title',
+      field,
       value,
     })
     // The config:update websocket push reloads the app with the new value.
   } catch (e: any) {
-    titleDraft.value = props.title ?? ''
+    drafts[field] = props[field] ?? ''
     // eslint-disable-next-line no-alert
     alert(e?.data?.statusMessage || e?.statusMessage || 'Save failed')
   } finally {
