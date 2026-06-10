@@ -14,9 +14,17 @@ export default defineNuxtPlugin(async () => {
 
   const services = reactive<any[]>([...initialServices])
   const settings = reactive<Record<string, any>>({ ...initialSettings })
+  // Last config hash this client knows about. Lets us skip the redundant
+  // refetch the watcher fires for our own optimistic edits (no flicker).
+  const lastHash = useState<string>('config:lastHash', () => initialSettings.configHash || '')
 
   async function refreshConfig() {
     const fresh = await $fetch<any>('/api/settings', { headers: adminHeaders() })
+
+    if (fresh?.configHash && fresh.configHash === lastHash.value) {
+      return // our own change, already applied optimistically
+    }
+
     const { services: svc = [], ...rest } = fresh || {}
 
     services.splice(0, services.length, ...svc)
@@ -28,6 +36,7 @@ export default defineNuxtPlugin(async () => {
     }
 
     Object.assign(settings, rest)
+    lastHash.value = fresh?.configHash || ''
   }
 
   if (import.meta.client) {

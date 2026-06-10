@@ -281,7 +281,10 @@ export default defineEventHandler(async (event) => {
     throw e
   }
 
-  await writeConfigFile(yaml.stringify(doc))
+  const content = yaml.stringify(doc)
+  await writeConfigFile(content)
 
-  return { ok: true }
+  // Return the new hash so the client can mark its own change and skip the
+  // redundant refetch the watcher's config:update would otherwise trigger.
+  return { ok: true, hash: hashConfig(content) }
 })

@@ -35,9 +35,92 @@ export function useAdmin() {
   const dragSource = useState<{ kind: 'service' | 'group', groupIndex: number | null, index: number } | null>('admin:drag', () => null)
 
   const headers = adminHeaders
+  const lastHash = useState<string>('config:lastHash', () => '')
+
   // Reactively refetch the dashboard config (provided by the settings plugin)
   // instead of doing a hard page reload, so editing keeps focus/scroll/mode.
-  const refresh = (): void | Promise<void> => (nuxtApp.$refreshConfig as (() => Promise<void>) | undefined)?.()
+  // Resetting lastHash first bypasses the self-edit dedup to force a real fetch.
+  function refresh(): void | Promise<void> {
+    lastHash.value = ''
+
+    return (nuxtApp.$refreshConfig as (() => Promise<void>) | undefined)?.()
+  }
+
+  // Apply an op to the local reactive config immediately, so the UI responds
+  // instantly; the server write + watcher reconcile in the background.
+  function applyLocal(op: any): void {
+    const services = nuxtApp.$services as any[] | undefined
+
+    if (!services) {
+      return
+    }
+
+    const gi = (op.groupIndex ?? 0) as number
+    const group = services[gi]
+    const item = group?.items?.[op.index]
+
+    switch (op.type) {
+      case 'set-field':
+        if (item) {
+          item[op.field] = op.value
+        }
+        break
+      case 'set-tags':
+        if (item) {
+          item.tags = (op.tags as string[]).map((name) => ({ name, color: 'blue' }))
+        }
+        break
+      case 'set-status':
+        if (item) {
+          item.status = { ...(item.status || {}), ...op.status }
+        }
+        break
+      case 'set-icon':
+        if (item) {
+          const icon: Record<string, unknown> = { ...(item.icon || {}) }
+          for (const [key, value] of Object.entries(op.icon as Record<string, unknown>)) {
+            if (value === '' || value == null) {
+              delete icon[key]
+            } else {
+              icon[key] = value
+            }
+          }
+          item.icon = Object.keys(icon).length ? icon : undefined
+        }
+        break
+      case 'add-service':
+        group?.items?.push({ id: `tmp-${Date.now()}`, title: 'New service', tags: [] })
+        break
+      case 'delete-service':
+        group?.items?.splice(op.index, 1)
+        break
+      case 'move-service': {
+        const from = services[(op.fromGroup ?? 0) as number]?.items
+        const to = services[(op.toGroup ?? 0) as number]?.items
+        if (from && to) {
+          const [moved] = from.splice(op.fromIndex, 1)
+          to.splice(Math.max(0, Math.min(op.toIndex, to.length)), 0, moved)
+        }
+        break
+      }
+      case 'add-group':
+        services.push({ title: 'New group', items: [] })
+        break
+      case 'rename-group':
+        if (group) {
+          group.title = op.title
+        }
+        break
+      case 'delete-group':
+        services.splice(gi, 1)
+        break
+      case 'move-group': {
+        const [moved] = services.splice(op.fromIndex, 1)
+        services.splice(op.toIndex, 0, moved)
+        break
+      }
+    }
+  }
 
   async function verify(): Promise<boolean> {
     // Always ask the server — a forward-auth admin is identified by a proxy
@@ -48,6 +131,11 @@ export function useAdmin() {
       })
 
       mayEdit.value = Boolean(res?.mayEdit)
+
+      // Refetch with the token so secret presence + admin-only data populate.
+      if (mayEdit.value) {
+        await refresh()
+      }
     } catch {
       mayEdit.value = false
     }
@@ -64,8 +152,6 @@ export function useAdmin() {
 
     if (ok) {
       editMode.value = true
-      // refetch with the token so secret presence + mayEdit-derived data appear
-      await refresh()
     }
 
     return ok
@@ -81,21 +167,31 @@ export function useAdmin() {
   }
 
   async function sendOp(op: Record<string, unknown>): Promise<void> {
-    const baseHash = (nuxtApp.$settings as { configHash?: string })?.configHash
+    const settings = nuxtApp.$settings as { configHash?: string } | undefined
+    const baseHash = settings?.configHash
+
+    applyLocal(op) // optimistic — UI updates instantly
 
     try {
-      await $fetch('/api/config', {
+      const res = await $fetch<{ hash?: string }>('/api/config', {
         method: 'POST',
         headers: headers(),
         body: { ...op, baseHash },
       })
-    } catch (e) {
-      // Stale base (409): the file changed under us — refresh to the new state.
-      if ((e as { statusCode?: number, response?: { status?: number } })?.statusCode === 409
-        || (e as { response?: { status?: number } })?.response?.status === 409) {
-        await refresh()
-      }
 
+      // Mark our own change so the watcher's config:update refetch is skipped,
+      // and keep configHash current for the next op's baseHash.
+      if (res?.hash) {
+        lastHash.value = res.hash
+
+        if (settings) {
+          settings.configHash = res.hash
+        }
+      }
+    } catch (e) {
+      // The optimistic change didn't persist (validation, 409, network) —
+      // revert to server truth.
+      await refresh()
       throw e
     }
   }
