@@ -106,6 +106,19 @@ export function useAdmin() {
     return sendOp({ type: 'set-icon', groupIndex, index, icon })
   }
 
+  async function uploadIcon(file: File): Promise<string> {
+    const form = new FormData()
+    form.append('file', file)
+
+    const res = await $fetch<{ url: string }>('/api/icons', {
+      method: 'POST',
+      headers: headers(),
+      body: form,
+    })
+
+    return res.url
+  }
+
   function addService(groupIndex: number | null): Promise<void> {
     return sendOp({ type: 'add-service', groupIndex })
   }
@@ -136,6 +149,7 @@ export function useAdmin() {
     setTags,
     setStatus,
     setIcon,
+    uploadIcon,
     addService,
     deleteService,
     deleteGroup,

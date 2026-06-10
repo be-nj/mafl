@@ -36,6 +36,10 @@
         @keyup.enter="commitUrl"
         @blur="commitUrl"
       >
+      <label class="block text-center text-xs py-1.5 rounded bg-fg/10 hover:bg-fg/15 cursor-pointer transition-colors">
+        {{ uploading ? 'Uploading…' : 'Upload image' }}
+        <input type="file" accept="image/*" class="hidden" :disabled="uploading" @change="onUpload">
+      </label>
     </div>
   </div>
 </template>
@@ -55,8 +59,9 @@ const props = defineProps<{
   icon?: IconShape
 }>()
 
-const { setIcon } = useAdmin()
+const { setIcon, uploadIcon } = useAdmin()
 const open = ref(false)
+const uploading = ref(false)
 const nameDraft = ref(props.icon?.name ?? '')
 const urlDraft = ref(props.icon?.url ?? '')
 
@@ -102,5 +107,27 @@ function commitUrl() {
   }
 
   save({ url: urlDraft.value.trim(), name: '' })
+}
+
+async function onUpload(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+
+  if (!file || props.index == null) {
+    return
+  }
+
+  uploading.value = true
+
+  try {
+    const url = await uploadIcon(file)
+    nameDraft.value = ''
+    urlDraft.value = url
+    await setIcon(props.groupIndex ?? null, props.index, { url, name: '' })
+  } catch (e: any) {
+    // eslint-disable-next-line no-alert
+    alert(e?.data?.statusMessage || e?.statusMessage || 'Upload failed')
+  } finally {
+    uploading.value = false
+  }
 }
 </script>
