@@ -46,6 +46,21 @@ export async function writeConfigFile(content: string): Promise<void> {
   await rename(tmp, path)
 }
 
+/**
+ * Short content hash of a raw config string. Used as an optimistic-concurrency
+ * token: an Edit Op carries the hash it was authored against, so a save can be
+ * rejected if the file changed underneath it (another admin, a hand-edit).
+ */
+export function hashConfig(raw: string): string {
+  return crypto.createHash('sha256').update(raw).digest('hex').slice(0, 16)
+}
+
+export async function getRawConfigHash(): Promise<string> {
+  const storage = useStorage('data')
+
+  return hashConfig(await storage.getItem<string>(configFileName) || '')
+}
+
 export function getDefaultConfig(): CompleteConfig {
   return {
     title: 'Mafl Home Page',

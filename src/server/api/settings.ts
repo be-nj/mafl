@@ -17,5 +17,6 @@ export default defineEventHandler(async (event) => {
   return {
     ...extractSafelyConfig(config),
     mayEdit: isAdmin(event),
+    configHash: await getRawConfigHash(),
   }
 })

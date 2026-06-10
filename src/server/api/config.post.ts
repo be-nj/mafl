@@ -12,6 +12,7 @@ interface FieldEditOp {
   index: number
   field: string
   value: unknown
+  baseHash?: string
 }
 
 const EDITABLE_FIELDS = new Set(['title', 'description', 'link'])
@@ -54,6 +55,12 @@ export default defineEventHandler(async (event) => {
 
   const storage = useStorage('data')
   const raw = await storage.getItem<string>(configFileName)
+
+  // Optimistic concurrency: reject if the file changed since the op was authored.
+  if (body.baseHash && body.baseHash !== hashConfig(raw || '')) {
+    throw createError({ statusCode: 409, statusMessage: 'Config changed, reload and retry' })
+  }
+
   const doc = yaml.parse(raw || '') || {}
 
   const target = locateService(doc, body.groupIndex ?? null, body.index)

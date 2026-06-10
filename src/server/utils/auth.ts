@@ -16,14 +16,39 @@ function tokensMatch(a: string, b: string): boolean {
 }
 
 /**
- * Token Auth Provider.
+ * forward-auth Auth Provider.
  *
- * A request is Admin iff an admin token is configured (`MAFL_ADMIN_TOKEN`)
- * and the request carries the matching token. With no token configured no
- * request is ever Admin (refuse-by-default) — the inline editor stays off and
- * the app behaves read-only, exactly as without this feature.
+ * Trust a group header injected by a trusted upstream proxy (Authentik,
+ * Authelia, oauth2-proxy, …). Admin iff the configured admin group appears
+ * (split on the configured separator, exact match — never substring) in that
+ * header. ONLY safe if the app is not reachable bypassing the proxy, otherwise
+ * the header is forgeable (see ADR 0001).
  */
-export function isAdmin(event: H3Event): boolean {
+function isAdminByForwardAuth(event: H3Event): boolean {
+  const { auth } = useRuntimeConfig(event)
+  const { groupsHeader, groupsSeparator, adminGroup } = auth
+
+  if (!adminGroup || !groupsHeader) {
+    return false
+  }
+
+  const raw = getRequestHeader(event, groupsHeader)
+
+  if (!raw) {
+    return false
+  }
+
+  return raw
+    .split(groupsSeparator || ',')
+    .map((group) => group.trim())
+    .includes(adminGroup)
+}
+
+/**
+ * Token Auth Provider. Admin iff an admin token is configured
+ * (`MAFL_ADMIN_TOKEN`) and the request carries the matching token.
+ */
+function isAdminByToken(event: H3Event): boolean {
   const { adminToken } = useRuntimeConfig(event)
 
   if (!adminToken) {
@@ -33,6 +58,15 @@ export function isAdmin(event: H3Event): boolean {
   const provided = getRequestHeader(event, TOKEN_HEADER)
 
   return Boolean(provided) && tokensMatch(provided as string, adminToken as string)
+}
+
+/**
+ * A request is Admin if any configured Auth Provider grants it. With none
+ * configured no request is ever Admin (refuse-by-default) — the inline editor
+ * stays off and the app behaves read-only, exactly as without this feature.
+ */
+export function isAdmin(event: H3Event): boolean {
+  return isAdminByForwardAuth(event) || isAdminByToken(event)
 }
 
 export function requireAdmin(event: H3Event): void {

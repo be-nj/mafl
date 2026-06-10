@@ -17,6 +17,7 @@ export interface FieldEditOp {
  * the server hands back; `editMode` is the local view/edit toggle.
  */
 export function useAdmin() {
+  const nuxtApp = useNuxtApp()
   const mayEdit = useState('admin:mayEdit', () => false)
   const editMode = useState('admin:editMode', () => false)
 
@@ -31,12 +32,8 @@ export function useAdmin() {
   }
 
   async function verify(): Promise<boolean> {
-    if (!getToken()) {
-      mayEdit.value = false
-
-      return false
-    }
-
+    // Always ask the server — a forward-auth admin is identified by a proxy
+    // header (no token), so we cannot short-circuit on a missing local token.
     try {
       const res = await $fetch<CompleteConfig & { mayEdit?: boolean }>('/api/settings', {
         headers: headers(),
@@ -74,11 +71,23 @@ export function useAdmin() {
   }
 
   async function saveField(op: FieldEditOp): Promise<void> {
-    await $fetch('/api/config', {
-      method: 'POST',
-      headers: headers(),
-      body: op,
-    })
+    const baseHash = (nuxtApp.$settings as { configHash?: string })?.configHash
+
+    try {
+      await $fetch('/api/config', {
+        method: 'POST',
+        headers: headers(),
+        body: { ...op, baseHash },
+      })
+    } catch (e) {
+      // Stale base (409): the file changed under us — reload to the new state.
+      if ((e as { statusCode?: number, response?: { status?: number } })?.statusCode === 409
+        || (e as { response?: { status?: number } })?.response?.status === 409) {
+        reloadNuxtApp({ force: true })
+      }
+
+      throw e
+    }
   }
 
   return { mayEdit, editMode, verify, enter, leave, saveField }
