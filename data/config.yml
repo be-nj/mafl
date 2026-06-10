@@ -1,12 +1,6 @@
 title: Verify Run
 services:
   Media:
-    - title: Jellyfin
-      description: Streaming
-      link: https://jelly.example.com
-      icon:
-        name: simple-icons:jellyfin
-        color: "#00a4dc"
     - title: Plex
       description: Media server
       link: https://plex.example.com
@@ -18,10 +12,18 @@ services:
         url: https://plex.example.com
       secrets:
         apiKey: SUPER-SECRET-VALUE
-    - title: New service
+    - title: Jellyfin
+      description: Streaming
+      link: https://jelly.example.com
+      icon:
+        name: simple-icons:jellyfin
+        color: "#00a4dc"
   Tools:
     - title: Router
       description: Network
       link: https://router.lan
       tags:
         - infra
+      status:
+        enabled: true
+        url: http://hedy.home

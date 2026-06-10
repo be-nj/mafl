@@ -31,8 +31,6 @@ export function useAdmin() {
   const nuxtApp = useNuxtApp()
   const mayEdit = useState('admin:mayEdit', () => false)
   const editMode = useState('admin:editMode', () => false)
-  // Shared drag source for native HTML5 drag-and-drop reordering.
-  const dragSource = useState<{ kind: 'service' | 'group', groupIndex: number | null, index: number } | null>('admin:drag', () => null)
 
   const headers = adminHeaders
   const lastHash = useState<string>('config:lastHash', () => '')
@@ -166,11 +164,15 @@ export function useAdmin() {
     editMode.value = false
   }
 
-  async function sendOp(op: Record<string, unknown>): Promise<void> {
+  async function sendOp(op: Record<string, unknown>, skipLocal = false): Promise<void> {
     const settings = nuxtApp.$settings as { configHash?: string } | undefined
     const baseHash = settings?.configHash
 
-    applyLocal(op) // optimistic — UI updates instantly
+    // skipLocal: the caller already mutated local state (e.g. vuedraggable on a
+    // drag). Otherwise apply optimistically so the UI updates instantly.
+    if (!skipLocal) {
+      applyLocal(op)
+    }
 
     try {
       const res = await $fetch<{ hash?: string }>('/api/config', {
@@ -238,11 +240,11 @@ export function useAdmin() {
   }
 
   function moveService(fromGroup: number | null, fromIndex: number, toGroup: number | null, toIndex: number): Promise<void> {
-    return sendOp({ type: 'move-service', fromGroup, fromIndex, toGroup, toIndex })
+    return sendOp({ type: 'move-service', fromGroup, fromIndex, toGroup, toIndex }, true)
   }
 
   function moveGroup(fromIndex: number, toIndex: number): Promise<void> {
-    return sendOp({ type: 'move-group', fromIndex, toIndex })
+    return sendOp({ type: 'move-group', fromIndex, toIndex }, true)
   }
 
   function deleteGroup(groupIndex: number): Promise<void> {
@@ -260,7 +262,6 @@ export function useAdmin() {
   return {
     mayEdit,
     editMode,
-    dragSource,
     verify,
     enter,
     leave,

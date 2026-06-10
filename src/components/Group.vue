@@ -1,17 +1,10 @@
 <template>
   <div class="py-10">
-    <h2
-      v-if="title"
-      class="text-2xl font-light py-2 px-4 flex items-center gap-2"
-      @dragover.prevent
-      @drop="onGroupDrop"
-    >
+    <h2 v-if="title" class="text-2xl font-light py-2 px-4 flex items-center gap-2">
       <span
         v-if="editMode && groupIndex != null"
-        class="cursor-grab select-none text-fg-dimmed hover:text-fg text-base"
-        draggable="true"
+        class="group-drag-handle cursor-grab select-none text-fg-dimmed hover:text-fg text-base"
         title="Drag group"
-        @dragstart="onGroupDragStart"
       >
         ⠿
       </span>
@@ -34,45 +27,60 @@
         ✕
       </button>
     </h2>
-    <div :class="gridClasses">
-      <div
-        v-for="(item, index) in items"
-        :key="item.id"
-        class="relative"
-        @dragover.prevent
-        @drop="onCardDrop(index)"
-      >
-        <span
-          v-if="editMode"
-          class="absolute top-2 left-2 z-10 cursor-grab select-none text-fg-dimmed hover:text-fg"
-          draggable="true"
-          title="Drag to reorder"
-          @dragstart="onCardDragStart(index, $event)"
-        >
-          ⠿
-        </span>
-        <Item v-bind="item" :group-index="groupIndex" :index="index" />
+
+    <draggable
+      v-if="editMode"
+      tag="div"
+      :class="gridClasses"
+      :list="items"
+      :group="{ name: 'services' }"
+      item-key="id"
+      handle=".service-drag-handle"
+      :animation="150"
+      ghost-class="opacity-40"
+      :data-group-index="groupIndex ?? 0"
+      @end="onServiceDragEnd"
+    >
+      <template #item="{ element, index }">
+        <div class="relative">
+          <span
+            class="service-drag-handle absolute top-2 left-2 z-10 cursor-grab select-none text-fg-dimmed hover:text-fg"
+            title="Drag to reorder"
+          >
+            ⠿
+          </span>
+          <Item v-bind="element" :group-index="groupIndex" :index="index" />
+          <button
+            class="absolute top-2 right-2 w-6 h-6 rounded-full bg-fg/10 text-fg-dimmed text-sm hover:bg-red-500 hover:text-white transition-colors"
+            title="Delete service"
+            @click="deleteService(groupIndex ?? null, index)"
+          >
+            ✕
+          </button>
+        </div>
+      </template>
+      <template #footer>
         <button
-          v-if="editMode"
-          class="absolute top-2 right-2 w-6 h-6 rounded-full bg-fg/10 text-fg-dimmed text-sm hover:bg-red-500 hover:text-white transition-colors"
-          title="Delete service"
-          @click="deleteService(groupIndex ?? null, index)"
+          class="flex items-center justify-center min-h-24 rounded-2xl border-2 border-dashed border-fg/15 text-fg-dimmed hover:border-fg/30 hover:text-fg transition-all"
+          @click="addService(groupIndex ?? null)"
         >
-          ✕
+          + Add service
         </button>
-      </div>
-      <button
-        v-if="editMode"
-        class="flex items-center justify-center min-h-24 rounded-2xl border-2 border-dashed border-fg/15 text-fg-dimmed hover:border-fg/30 hover:text-fg transition-all"
-        @click="addService(groupIndex ?? null)"
-      >
-        + Add service
-      </button>
+      </template>
+    </draggable>
+
+    <div v-else :class="gridClasses">
+      <Item
+        v-for="item in items"
+        :key="item.id"
+        v-bind="item"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import draggable from 'vuedraggable'
 import type { Layout, Service } from '~/types'
 
 export interface Props {
@@ -84,46 +92,18 @@ export interface Props {
 
 const props = defineProps<Props>()
 
-const { editMode, addService, deleteService, deleteGroup, renameGroup, moveService, moveGroup, dragSource } = useAdmin()
+const { editMode, addService, deleteService, deleteGroup, renameGroup, moveService } = useAdmin()
 
-function onCardDragStart(index: number, event: DragEvent) {
-  dragSource.value = { kind: 'service', groupIndex: props.groupIndex ?? null, index }
+function onServiceDragEnd(event: { from: HTMLElement, to: HTMLElement, oldIndex: number, newIndex: number }) {
+  const fromGroup = Number(event.from.dataset.groupIndex)
+  const toGroup = Number(event.to.dataset.groupIndex)
 
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('text/plain', 'service') // required for drag to start in some browsers
-  }
-}
-
-function onCardDrop(index: number) {
-  const source = dragSource.value
-  dragSource.value = null
-
-  if (source?.kind === 'service' && !(source.groupIndex === (props.groupIndex ?? null) && source.index === index)) {
-    moveService(source.groupIndex, source.index, props.groupIndex ?? null, index)
-  }
-}
-
-function onGroupDragStart(event: DragEvent) {
-  if (props.groupIndex == null) {
+  if (fromGroup === toGroup && event.oldIndex === event.newIndex) {
     return
   }
 
-  dragSource.value = { kind: 'group', groupIndex: props.groupIndex, index: props.groupIndex }
-
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('text/plain', 'group') // required for drag to start in some browsers
-  }
-}
-
-function onGroupDrop() {
-  const source = dragSource.value
-  dragSource.value = null
-
-  if (source?.kind === 'group' && props.groupIndex != null && source.index !== props.groupIndex) {
-    moveGroup(source.index, props.groupIndex)
-  }
+  // vuedraggable already moved the item in the bound lists; just persist.
+  moveService(fromGroup, event.oldIndex, toGroup, event.newIndex)
 }
 
 const groupTitleDraft = ref(props.title ?? '')
