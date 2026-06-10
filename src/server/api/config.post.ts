@@ -10,6 +10,7 @@ import { configSchema } from '~/server/validations'
 type EditOp =
   | { type: 'set-field', groupIndex: number | null, index: number, field: string, value: unknown }
   | { type: 'set-tags', groupIndex: number | null, index: number, tags: string[] }
+  | { type: 'set-status', groupIndex: number | null, index: number, status: Record<string, unknown> }
   | { type: 'add-service', groupIndex: number | null }
   | { type: 'delete-service', groupIndex: number | null, index: number }
   | { type: 'add-group', title?: string }
@@ -140,6 +141,13 @@ function applyOp(doc: Record<string, any>, op: EditOp): void {
     } else {
       delete target.tags
     }
+
+    return
+  }
+
+  if (op.type === 'set-status') {
+    // Merge the patch; the full-schema parse validates status via statusSchema.
+    target.status = { ...(target.status as object || {}), ...op.status }
 
     return
   }

@@ -49,6 +49,13 @@
         @keyup.enter="commitField('link')"
         @blur="commitField('link')"
       >
+      <AdminCardSettings
+        v-if="editMode && index != null"
+        class="mt-1"
+        :group-index="groupIndex"
+        :index="index"
+        :status="status"
+      />
       <div v-if="editMode && index != null" class="flex flex-wrap gap-1 mt-1 items-center">
         <span
           v-for="(tag, key) in tags"

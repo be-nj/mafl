@@ -98,6 +98,10 @@ export function useAdmin() {
     return sendOp({ type: 'set-tags', groupIndex, index, tags })
   }
 
+  function setStatus(groupIndex: number | null, index: number, status: Record<string, unknown>): Promise<void> {
+    return sendOp({ type: 'set-status', groupIndex, index, status })
+  }
+
   function addService(groupIndex: number | null): Promise<void> {
     return sendOp({ type: 'add-service', groupIndex })
   }
@@ -126,6 +130,7 @@ export function useAdmin() {
     leave,
     saveField,
     setTags,
+    setStatus,
     addService,
     deleteService,
     deleteGroup,
