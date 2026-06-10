@@ -61,6 +61,7 @@
         :group-index="groupIndex"
         :index="index"
         :status="status"
+        :secret-keys="secretKeys"
       />
       <div v-if="editMode && index != null" class="flex flex-wrap gap-1 mt-1 items-center">
         <span

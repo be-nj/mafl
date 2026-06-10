@@ -106,6 +106,10 @@ export function useAdmin() {
     return sendOp({ type: 'set-icon', groupIndex, index, icon })
   }
 
+  function setSecret(groupIndex: number | null, index: number, key: string, value: string): Promise<void> {
+    return sendOp({ type: 'set-secret', groupIndex, index, key, value })
+  }
+
   async function uploadIcon(file: File): Promise<string> {
     const form = new FormData()
     form.append('file', file)
@@ -149,6 +153,7 @@ export function useAdmin() {
     setTags,
     setStatus,
     setIcon,
+    setSecret,
     uploadIcon,
     addService,
     deleteService,

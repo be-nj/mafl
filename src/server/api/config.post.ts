@@ -12,6 +12,7 @@ type EditOp =
   | { type: 'set-tags', groupIndex: number | null, index: number, tags: string[] }
   | { type: 'set-status', groupIndex: number | null, index: number, status: Record<string, unknown> }
   | { type: 'set-icon', groupIndex: number | null, index: number, icon: Record<string, unknown> }
+  | { type: 'set-secret', groupIndex: number | null, index: number, key: string, value: string }
   | { type: 'add-service', groupIndex: number | null }
   | { type: 'delete-service', groupIndex: number | null, index: number }
   | { type: 'add-group', title?: string }
@@ -168,6 +169,28 @@ function applyOp(doc: Record<string, any>, op: EditOp): void {
       target.icon = icon
     } else {
       delete target.icon
+    }
+
+    return
+  }
+
+  if (op.type === 'set-secret') {
+    if (!op.key) {
+      throw createError({ statusCode: 400, statusMessage: 'Secret key required' })
+    }
+
+    const secrets: Record<string, unknown> = { ...(target.secrets as object || {}) }
+
+    if (op.value === '' || op.value == null) {
+      delete secrets[op.key] // clear
+    } else {
+      secrets[op.key] = op.value // replace; the value never round-trips to the client
+    }
+
+    if (Object.keys(secrets).length) {
+      target.secrets = secrets
+    } else {
+      delete target.secrets
     }
 
     return
