@@ -106,5 +106,25 @@ export function useAdmin() {
     return sendOp({ type: 'delete-group', groupIndex })
   }
 
-  return { mayEdit, editMode, verify, enter, leave, saveField, addService, deleteService, deleteGroup }
+  function addGroup(): Promise<void> {
+    return sendOp({ type: 'add-group' })
+  }
+
+  function renameGroup(groupIndex: number, title: string): Promise<void> {
+    return sendOp({ type: 'rename-group', groupIndex, title })
+  }
+
+  return {
+    mayEdit,
+    editMode,
+    verify,
+    enter,
+    leave,
+    saveField,
+    addService,
+    deleteService,
+    deleteGroup,
+    addGroup,
+    renameGroup,
+  }
 }

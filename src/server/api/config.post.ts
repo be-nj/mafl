@@ -11,6 +11,8 @@ type EditOp =
   | { type: 'set-field', groupIndex: number | null, index: number, field: string, value: unknown }
   | { type: 'add-service', groupIndex: number | null }
   | { type: 'delete-service', groupIndex: number | null, index: number }
+  | { type: 'add-group', title?: string }
+  | { type: 'rename-group', groupIndex: number, title: string }
   | { type: 'delete-group', groupIndex: number }
 
 interface OpEnvelope {
@@ -41,20 +43,62 @@ function groupItems(doc: Record<string, any>, groupIndex: number | null): Record
 }
 
 function applyOp(doc: Record<string, any>, op: EditOp): void {
-  if (op.type === 'delete-group') {
+  if (op.type === 'add-group') {
+    const { services } = doc
+
+    if (Array.isArray(services) && services.length) {
+      throw createError({ statusCode: 400, statusMessage: 'Config is a flat service list; groups are not used' })
+    }
+
+    const groups: Record<string, any> = (services && !Array.isArray(services)) ? services : {}
+    let name = op.title?.trim() || 'New group'
+
+    while (name in groups) {
+      name += ' (1)'
+    }
+
+    groups[name] = []
+    doc.services = groups
+
+    return
+  }
+
+  if (op.type === 'rename-group' || op.type === 'delete-group') {
     const { services } = doc
 
     if (!services || typeof services !== 'object' || Array.isArray(services)) {
-      throw createError({ statusCode: 400, statusMessage: 'No named groups to delete' })
+      throw createError({ statusCode: 400, statusMessage: 'No named groups' })
     }
 
-    const key = Object.keys(services)[op.groupIndex]
+    const keys = Object.keys(services)
+    const oldKey = keys[op.groupIndex]
 
-    if (key == null) {
+    if (oldKey == null) {
       throw createError({ statusCode: 404, statusMessage: 'Group not found' })
     }
 
-    delete services[key]
+    if (op.type === 'delete-group') {
+      delete services[oldKey]
+
+      return
+    }
+
+    // rename-group: rekey while preserving group order and contents.
+    const newKey = op.title?.trim()
+
+    if (!newKey) {
+      throw createError({ statusCode: 400, statusMessage: 'Group title required' })
+    }
+
+    if (newKey !== oldKey && newKey in services) {
+      throw createError({ statusCode: 409, statusMessage: 'A group with that title already exists' })
+    }
+
+    doc.services = keys.reduce<Record<string, any>>((acc, key) => {
+      acc[key === oldKey ? newKey : key] = services[key]
+
+      return acc
+    }, {})
 
     return
   }

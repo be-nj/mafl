@@ -1,7 +1,16 @@
 <template>
   <div class="py-10">
     <h2 v-if="title" class="text-2xl font-light py-2 px-4 flex items-center gap-2">
-      {{ title }}
+      <input
+        v-if="editMode && groupIndex != null"
+        v-model="groupTitleDraft"
+        class="bg-transparent border-b border-fg/30 focus:outline-none focus:border-fg font-light"
+        @keyup.enter="commitGroupTitle"
+        @blur="commitGroupTitle"
+      >
+      <template v-else>
+        {{ title }}
+      </template>
       <button
         v-if="editMode && groupIndex != null"
         class="text-sm text-fg-dimmed hover:text-red-500 transition-colors"
@@ -46,7 +55,12 @@ export interface Props {
 
 const props = defineProps<Props>()
 
-const { editMode, addService, deleteService, deleteGroup } = useAdmin()
+const { editMode, addService, deleteService, deleteGroup, renameGroup } = useAdmin()
+
+const groupTitleDraft = ref(props.title ?? '')
+watch(() => props.title, (value) => {
+  groupTitleDraft.value = value ?? ''
+})
 
 function onDeleteGroup() {
   if (props.groupIndex == null) {
@@ -56,6 +70,22 @@ function onDeleteGroup() {
   // eslint-disable-next-line no-alert
   if (confirm(`Delete group "${props.title}" and its ${props.items.length} services?`)) {
     deleteGroup(props.groupIndex)
+  }
+}
+
+async function commitGroupTitle() {
+  const value = groupTitleDraft.value.trim()
+
+  if (props.groupIndex == null || !value || value === (props.title ?? '')) {
+    return
+  }
+
+  try {
+    await renameGroup(props.groupIndex, value)
+  } catch (e: any) {
+    groupTitleDraft.value = props.title ?? ''
+    // eslint-disable-next-line no-alert
+    alert(e?.data?.statusMessage || e?.statusMessage || 'Rename failed')
   }
 }
 
