@@ -20,11 +20,11 @@
       </template>
       <button
         v-if="editMode && groupIndex != null"
-        class="text-sm text-fg-dimmed hover:text-red-500 transition-colors"
+        class="text-fg-dimmed hover:text-red-500 transition-colors"
         title="Delete group"
         @click="onDeleteGroup"
       >
-        ✕
+        <Icon name="mdi:trash-can-outline" class="w-5 h-5" />
       </button>
     </h2>
 
@@ -44,7 +44,7 @@
         <template #item="{ element, index }">
           <div class="relative">
             <span
-              class="service-drag-handle absolute left-1 top-1/2 -translate-y-1/2 z-20 text-xl leading-none cursor-grab select-none text-fg-dimmed hover:text-fg"
+              class="service-drag-handle absolute -left-2 top-1/2 -translate-y-1/2 z-20 text-xl leading-none cursor-grab select-none text-fg-dimmed/60 hover:text-fg"
               title="Drag to reorder"
             >
               ⠿

@@ -9,7 +9,7 @@
     </button>
     <div
       v-if="open"
-      class="absolute z-40 top-full right-0 mt-1 w-60 p-3 rounded-xl bg-bg shadow-lg border border-fg/10 text-sm space-y-2"
+      class="absolute z-40 top-full right-0 mt-1 w-60 p-3 rounded-xl bg-background shadow-lg border border-fg/10 text-sm space-y-2"
     >
       <label class="block">
         <span class="text-xs text-fg-dimmed">Link</span>

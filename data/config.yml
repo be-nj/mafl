@@ -48,3 +48,5 @@ services:
       icon:
         name: simple-icons:portainer
         color: "#13bef9"
+  New group:
+    - title: New service

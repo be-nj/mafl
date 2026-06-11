@@ -2,7 +2,7 @@
   <ServicePlaceholder v-if="loadingOverlay" />
   <Component :is="(isLink && !editMode) ? 'a' : 'div'" v-else :href="(isLink && !editMode) ? link : undefined" :target="target" class="relative h-full p-4 flex gap-4 hover:bg-fg/5 dark:hover:bg-fg/9 rounded-2xl transition-all">
     <div class="flex-shrink-0 flex">
-      <div class="self-center w-16 h-16 overflow-hidden">
+      <div class="self-center w-16 h-16" :class="{ 'overflow-hidden': !(editMode && index != null) }">
         <slot name="icon" :service="data">
           <AdminIconPicker
             v-if="editMode && index != null"
@@ -65,11 +65,11 @@
         :secret-keys="secretKeys"
       />
       <button
-        class="w-6 h-6 rounded-full bg-fg/10 text-fg-dimmed text-sm hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center"
+        class="w-6 h-6 rounded-full bg-fg/10 text-fg-dimmed hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center"
         title="Delete service"
         @click="deleteService(groupIndex ?? null, index)"
       >
-        ✕
+        <Icon name="mdi:trash-can-outline" class="w-3.5 h-3.5" />
       </button>
     </div>
   </Component>

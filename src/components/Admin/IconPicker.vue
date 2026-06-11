@@ -14,7 +14,7 @@
     </button>
     <div
       v-if="open"
-      class="absolute z-40 mt-1 left-0 w-64 p-3 rounded-xl bg-bg shadow-lg border border-fg/10 text-sm space-y-2"
+      class="absolute z-40 mt-1 left-0 w-64 p-3 rounded-xl bg-background shadow-lg border border-fg/10 text-sm space-y-2"
     >
       <div class="flex items-center gap-2">
         <div class="w-10 h-10 flex-shrink-0">
