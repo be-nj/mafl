@@ -1,9 +1,9 @@
 <template>
   <div class="py-10">
-    <h2 v-if="title" class="relative text-2xl font-light py-2 px-4 flex items-center gap-2">
+    <h2 v-if="title" class="group relative text-2xl font-light py-2 px-4 flex items-center gap-2">
       <span
         v-if="editMode && groupIndex != null"
-        class="group-drag-handle absolute left-0 top-1/2 -translate-y-1/2 mt-[3px] cursor-grab select-none text-fg-dimmed hover:text-fg text-base"
+        class="group-drag-handle absolute left-0 top-1/2 -translate-y-1/2 mt-[3px] cursor-grab select-none text-fg-dimmed hover:text-fg text-base transition-opacity duration-150 opacity-0 group-hover:opacity-100"
         title="Drag group"
       >
         ⠿
@@ -20,7 +20,7 @@
       </template>
       <button
         v-if="editMode && groupIndex != null"
-        class="text-fg-dimmed hover:text-red-500 transition-colors"
+        class="text-fg-dimmed hover:text-red-500 transition-all duration-150 opacity-0 group-hover:opacity-100"
         title="Delete group"
         @click="onDeleteGroup"
       >
@@ -42,9 +42,9 @@
         @end="onServiceDragEnd"
       >
         <template #item="{ element, index }">
-          <div class="relative">
+          <div class="relative group">
             <span
-              class="service-drag-handle absolute -left-2 top-1/2 -translate-y-1/2 z-20 text-xl leading-none cursor-grab select-none text-fg-dimmed/60 hover:text-fg"
+              class="service-drag-handle absolute -left-2 top-1/2 -translate-y-1/2 z-20 text-xl leading-none cursor-grab select-none text-fg-dimmed/60 hover:text-fg transition-opacity duration-150 opacity-0 group-hover:opacity-100"
               title="Drag to reorder"
             >
               ⠿

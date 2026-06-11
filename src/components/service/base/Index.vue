@@ -55,7 +55,11 @@
         />
       </template>
     </div>
-    <div v-if="editMode && index != null" class="absolute top-2 right-2 z-20 flex items-center gap-1">
+    <div
+      v-if="editMode && index != null"
+      class="absolute top-2 right-2 z-20 flex items-center gap-1 transition-opacity duration-150 opacity-0 group-hover:opacity-100"
+      :class="{ '!opacity-100': cardPopoverOpen }"
+    >
       <AdminCardSettings
         :group-index="groupIndex"
         :index="index"
@@ -65,11 +69,11 @@
         :secret-keys="secretKeys"
       />
       <button
-        class="w-6 h-6 rounded-full bg-fg/10 text-fg-dimmed hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center"
+        class="w-7 h-7 rounded-full bg-fg/5 text-fg-dimmed hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center"
         title="Delete service"
         @click="deleteService(groupIndex ?? null, index)"
       >
-        <Icon name="mdi:trash-can-outline" class="w-3.5 h-3.5" />
+        <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
       </button>
     </div>
   </Component>
@@ -84,9 +88,12 @@ const props = defineProps<ServiceClient<Service> & {
 }>()
 
 const { $settings } = useNuxtApp()
-const { editMode, saveField, deleteService } = useAdmin()
+const { editMode, saveField, deleteService, openPopover } = useAdmin()
 const isLink = computed(() => isUrl(props.link || ''))
 const target = computed(() => props.target || $settings.behaviour.target)
+
+// Keep the toolbar visible while this card's icon/settings popover is open.
+const cardPopoverOpen = computed(() => Boolean(openPopover.value?.endsWith(`:${props.groupIndex}:${props.index}`)))
 
 type EditableField = 'title' | 'description'
 

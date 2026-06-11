@@ -42,11 +42,12 @@ services:
     - title: Router
       description: Network
       link: https://router.lan
+      icon:
+        name: simple-icons:opnsense
     - title: Portainer
       description: Containers
       link: https://portainer.lan
       icon:
-        name: simple-icons:portainer
         color: "#13bef9"
   New group:
     - title: New service

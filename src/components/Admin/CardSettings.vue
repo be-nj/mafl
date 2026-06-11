@@ -1,7 +1,7 @@
 <template>
   <div ref="root" class="relative">
     <button
-      class="w-6 h-6 rounded-full bg-fg/10 text-fg-dimmed text-sm hover:bg-fg/20 hover:text-fg transition-colors flex items-center justify-center"
+      class="w-7 h-7 rounded-full bg-fg/5 text-fg-dimmed text-sm hover:bg-fg/10 hover:text-fg transition-colors flex items-center justify-center"
       title="Settings (link, status, secrets)"
       @click="toggle"
     >
@@ -9,7 +9,7 @@
     </button>
     <div
       v-if="open"
-      class="absolute z-40 top-full right-0 mt-1 w-60 p-3 rounded-xl bg-background shadow-lg border border-fg/10 text-sm space-y-2"
+      class="absolute z-40 top-full right-0 mt-2 w-60 p-3 rounded-2xl bg-background shadow-xl border border-fg/10 text-sm space-y-2"
     >
       <label class="block">
         <span class="text-xs text-fg-dimmed">Link</span>
