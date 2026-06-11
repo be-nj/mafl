@@ -1,6 +1,6 @@
 <template>
   <ServicePlaceholder v-if="loadingOverlay" />
-  <Component :is="(isLink && !editMode) ? 'a' : 'div'" v-else :href="(isLink && !editMode) ? link : undefined" :target="target" class="p-4 flex gap-4 hover:bg-fg/5 dark:hover:bg-fg/9 rounded-2xl transition-all">
+  <Component :is="(isLink && !editMode) ? 'a' : 'div'" v-else :href="(isLink && !editMode) ? link : undefined" :target="target" class="relative p-4 flex gap-4 hover:bg-fg/5 dark:hover:bg-fg/9 rounded-2xl transition-all">
     <div class="flex-shrink-0 flex">
       <div class="self-center w-16 h-16 overflow-hidden">
         <slot name="icon" :service="data">
@@ -20,7 +20,7 @@
           <input
             v-if="editMode && index != null"
             v-model="drafts.title"
-            class="bg-transparent border-b border-fg/30 focus:outline-none focus:border-fg w-full"
+            class="w-full bg-transparent border-0 p-0 m-0 focus:outline-none focus:ring-1 focus:ring-fg/20 rounded"
             @keyup.enter="commitField('title')"
             @blur="commitField('title')"
           >
@@ -38,7 +38,7 @@
           <input
             v-if="editMode && index != null"
             v-model="drafts.description"
-            class="bg-transparent border-b border-fg/30 focus:outline-none focus:border-fg w-full"
+            class="w-full bg-transparent border-0 p-0 m-0 focus:outline-none focus:ring-1 focus:ring-fg/20 rounded"
             @keyup.enter="commitField('description')"
             @blur="commitField('description')"
           >
@@ -47,22 +47,6 @@
           </template>
         </slot>
       </p>
-      <input
-        v-if="editMode && index != null"
-        v-model="drafts.link"
-        placeholder="https://…"
-        class="mt-1 text-xs text-fg-dimmed bg-transparent border-b border-fg/20 focus:outline-none focus:border-fg w-full"
-        @keyup.enter="commitField('link')"
-        @blur="commitField('link')"
-      >
-      <AdminCardSettings
-        v-if="editMode && index != null"
-        class="mt-1"
-        :group-index="groupIndex"
-        :index="index"
-        :status="status"
-        :secret-keys="secretKeys"
-      />
       <div v-if="editMode && index != null" class="flex flex-wrap gap-1 mt-1 items-center">
         <span
           v-for="(tag, key) in tags"
@@ -87,6 +71,15 @@
         />
       </template>
     </div>
+    <AdminCardSettings
+      v-if="editMode && index != null"
+      class="absolute bottom-2 right-2"
+      :group-index="groupIndex"
+      :index="index"
+      :link="link"
+      :status="status"
+      :secret-keys="secretKeys"
+    />
   </Component>
 </template>
 

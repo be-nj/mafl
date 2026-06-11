@@ -1,16 +1,25 @@
 <template>
-  <div class="relative inline-block">
+  <div class="relative">
     <button
-      class="text-xs text-fg-dimmed hover:text-fg transition-colors"
-      title="Status settings"
+      class="w-6 h-6 rounded-full bg-fg/10 text-fg-dimmed text-sm hover:bg-fg/20 hover:text-fg transition-colors flex items-center justify-center"
+      title="Settings (link, status, secrets)"
       @click="open = !open"
     >
-      ⋯ status
+      ⋯
     </button>
     <div
       v-if="open"
-      class="absolute z-40 mt-1 left-0 w-60 p-3 rounded-xl bg-bg shadow-lg border border-fg/10 text-sm space-y-2"
+      class="absolute z-40 bottom-full right-0 mb-1 w-60 p-3 rounded-xl bg-bg shadow-lg border border-fg/10 text-sm space-y-2"
     >
+      <label class="block">
+        <span class="text-xs text-fg-dimmed">Link</span>
+        <input
+          :value="link"
+          placeholder="https://…"
+          class="w-full bg-fg/5 rounded px-2 py-1 focus:outline-none"
+          @change="saveLink(($event.target as HTMLInputElement).value)"
+        >
+      </label>
       <label class="flex items-center gap-2">
         <input
           type="checkbox"
@@ -75,12 +84,26 @@ interface StatusShape {
 const props = defineProps<{
   groupIndex?: number | null
   index?: number
+  link?: string
   status?: StatusShape
   secretKeys?: string[]
 }>()
 
-const { setStatus, setSecret } = useAdmin()
+const { setStatus, setSecret, saveField } = useAdmin()
 const open = ref(false)
+
+async function saveLink(value: string) {
+  if (props.index == null) {
+    return
+  }
+
+  try {
+    await saveField({ groupIndex: props.groupIndex ?? null, index: props.index, field: 'link', value })
+  } catch (e: any) {
+    // eslint-disable-next-line no-alert
+    alert(e?.data?.statusMessage || e?.statusMessage || 'Save failed')
+  }
+}
 
 async function patch(part: Record<string, unknown>) {
   if (props.index == null) {
