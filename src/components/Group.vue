@@ -44,19 +44,12 @@
       <template #item="{ element, index }">
         <div class="relative">
           <span
-            class="service-drag-handle absolute top-2 left-2 z-10 cursor-grab select-none text-fg-dimmed hover:text-fg"
+            class="service-drag-handle absolute top-2 left-2 z-20 cursor-grab select-none text-fg-dimmed hover:text-fg"
             title="Drag to reorder"
           >
             ⠿
           </span>
           <Item v-bind="element" :group-index="groupIndex" :index="index" />
-          <button
-            class="absolute top-2 right-2 w-6 h-6 rounded-full bg-fg/10 text-fg-dimmed text-sm hover:bg-red-500 hover:text-white transition-colors"
-            title="Delete service"
-            @click="deleteService(groupIndex ?? null, index)"
-          >
-            ✕
-          </button>
         </div>
       </template>
       <template #footer>
@@ -92,7 +85,7 @@ export interface Props {
 
 const props = defineProps<Props>()
 
-const { editMode, addService, deleteService, deleteGroup, renameGroup, moveService } = useAdmin()
+const { editMode, addService, deleteGroup, renameGroup, moveService } = useAdmin()
 
 function onServiceDragEnd(event: { from: HTMLElement, to: HTMLElement, oldIndex: number, newIndex: number }) {
   const fromGroup = Number(event.from.dataset.groupIndex)

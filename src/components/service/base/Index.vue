@@ -55,16 +55,23 @@
         />
       </template>
     </div>
-    <AdminCardSettings
-      v-if="editMode && index != null"
-      class="absolute bottom-2 right-2"
-      :group-index="groupIndex"
-      :index="index"
-      :link="link"
-      :status="status"
-      :tags="tags"
-      :secret-keys="secretKeys"
-    />
+    <div v-if="editMode && index != null" class="absolute top-2 right-2 z-20 flex items-center gap-1">
+      <AdminCardSettings
+        :group-index="groupIndex"
+        :index="index"
+        :link="link"
+        :status="status"
+        :tags="tags"
+        :secret-keys="secretKeys"
+      />
+      <button
+        class="w-6 h-6 rounded-full bg-fg/10 text-fg-dimmed text-sm hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center"
+        title="Delete service"
+        @click="deleteService(groupIndex ?? null, index)"
+      >
+        ✕
+      </button>
+    </div>
   </Component>
 </template>
 
@@ -77,7 +84,7 @@ const props = defineProps<ServiceClient<Service> & {
 }>()
 
 const { $settings } = useNuxtApp()
-const { editMode, saveField } = useAdmin()
+const { editMode, saveField, deleteService } = useAdmin()
 const isLink = computed(() => isUrl(props.link || ''))
 const target = computed(() => props.target || $settings.behaviour.target)
 
