@@ -3,7 +3,7 @@
     <h2 v-if="title" class="relative text-2xl font-light py-2 px-4 flex items-center gap-2">
       <span
         v-if="editMode && groupIndex != null"
-        class="group-drag-handle absolute left-0 top-1/2 -translate-y-1/2 cursor-grab select-none text-fg-dimmed hover:text-fg text-base"
+        class="group-drag-handle absolute left-0 top-1/2 -translate-y-1/2 mt-[3px] cursor-grab select-none text-fg-dimmed hover:text-fg text-base"
         title="Drag group"
       >
         ⠿
@@ -28,39 +28,38 @@
       </button>
     </h2>
 
-    <draggable
-      v-if="editMode"
-      tag="div"
-      :class="gridClasses"
-      :list="items"
-      :group="{ name: 'services' }"
-      item-key="id"
-      handle=".service-drag-handle"
-      :animation="150"
-      ghost-class="opacity-40"
-      :data-group-index="groupIndex ?? 0"
-      @end="onServiceDragEnd"
-    >
-      <template #item="{ element, index }">
-        <div class="relative">
-          <span
-            class="service-drag-handle absolute top-2 left-2 z-20 cursor-grab select-none text-fg-dimmed hover:text-fg"
-            title="Drag to reorder"
-          >
-            ⠿
-          </span>
-          <Item v-bind="element" :group-index="groupIndex" :index="index" />
-        </div>
-      </template>
-      <template #footer>
-        <button
-          class="flex items-center justify-center min-h-24 rounded-2xl border-2 border-dashed border-fg/15 text-fg-dimmed hover:border-fg/30 hover:text-fg transition-all"
-          @click="addService(groupIndex ?? null)"
-        >
-          + Add service
-        </button>
-      </template>
-    </draggable>
+    <div v-if="editMode" :class="gridClasses">
+      <draggable
+        tag="div"
+        class="contents"
+        :list="items"
+        :group="{ name: 'services' }"
+        item-key="id"
+        handle=".service-drag-handle"
+        :animation="150"
+        ghost-class="opacity-40"
+        :data-group-index="groupIndex ?? 0"
+        @end="onServiceDragEnd"
+      >
+        <template #item="{ element, index }">
+          <div class="relative">
+            <span
+              class="service-drag-handle absolute left-1 top-1/2 -translate-y-1/2 z-20 text-xl leading-none cursor-grab select-none text-fg-dimmed hover:text-fg"
+              title="Drag to reorder"
+            >
+              ⠿
+            </span>
+            <Item v-bind="element" :group-index="groupIndex" :index="index" />
+          </div>
+        </template>
+      </draggable>
+      <button
+        class="flex items-center justify-center min-h-24 rounded-2xl border-2 border-dashed border-fg/15 text-fg-dimmed hover:border-fg/30 hover:text-fg transition-all"
+        @click="addService(groupIndex ?? null)"
+      >
+        + Add service
+      </button>
+    </div>
 
     <div v-else :class="gridClasses">
       <Item
