@@ -1,9 +1,9 @@
 <template>
-  <div class="relative">
+  <div ref="root" class="relative">
     <button
       class="w-6 h-6 rounded-full bg-fg/10 text-fg-dimmed text-sm hover:bg-fg/20 hover:text-fg transition-colors flex items-center justify-center"
       title="Settings (link, status, secrets)"
-      @click="open = !open"
+      @click="toggle"
     >
       ⋯
     </button>
@@ -112,9 +112,21 @@ const props = defineProps<{
   secretKeys?: string[]
 }>()
 
-const { setStatus, setSecret, saveField, setTags } = useAdmin()
-const open = ref(false)
+const { setStatus, setSecret, saveField, setTags, openPopover } = useAdmin()
 const tagDraft = ref('')
+const root = ref<HTMLElement>()
+const popoverId = computed(() => `settings:${props.groupIndex}:${props.index}`)
+const open = computed(() => openPopover.value === popoverId.value)
+
+function toggle() {
+  openPopover.value = open.value ? null : popoverId.value
+}
+
+onClickOutside(root, () => {
+  if (open.value) {
+    openPopover.value = null
+  }
+})
 
 async function saveLink(value: string) {
   if (props.index == null) {

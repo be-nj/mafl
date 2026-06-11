@@ -31,6 +31,9 @@ export function useAdmin() {
   const nuxtApp = useNuxtApp()
   const mayEdit = useState('admin:mayEdit', () => false)
   const editMode = useState('admin:editMode', () => false)
+  // Id of the single currently-open card popover (icon picker or settings), so
+  // only one is ever open at a time across all cards.
+  const openPopover = useState<string | null>('admin:openPopover', () => null)
 
   const headers = adminHeaders
   const lastHash = useState<string>('config:lastHash', () => '')
@@ -262,6 +265,7 @@ export function useAdmin() {
   return {
     mayEdit,
     editMode,
+    openPopover,
     verify,
     enter,
     leave,

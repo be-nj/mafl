@@ -1,6 +1,6 @@
 <template>
-  <div class="relative">
-    <button class="relative block w-16 h-16 group" title="Edit icon" @click="open = !open">
+  <div ref="root" class="relative">
+    <button class="relative block w-16 h-16 group" title="Edit icon" @click="toggle">
       <ServiceBaseIcon v-if="hasIcon" v-bind="icon" />
       <div
         v-else
@@ -59,9 +59,21 @@ const props = defineProps<{
   icon?: IconShape
 }>()
 
-const { setIcon, uploadIcon } = useAdmin()
-const open = ref(false)
+const { setIcon, uploadIcon, openPopover } = useAdmin()
 const uploading = ref(false)
+const root = ref<HTMLElement>()
+const popoverId = computed(() => `icon:${props.groupIndex}:${props.index}`)
+const open = computed(() => openPopover.value === popoverId.value)
+
+function toggle() {
+  openPopover.value = open.value ? null : popoverId.value
+}
+
+onClickOutside(root, () => {
+  if (open.value) {
+    openPopover.value = null
+  }
+})
 const nameDraft = ref(props.icon?.name ?? '')
 const urlDraft = ref(props.icon?.url ?? '')
 
