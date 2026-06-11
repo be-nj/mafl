@@ -1,9 +1,9 @@
 <template>
   <div class="py-10">
-    <h2 v-if="title" class="text-2xl font-light py-2 px-4 flex items-center gap-2">
+    <h2 v-if="title" class="relative text-2xl font-light py-2 px-4 flex items-center gap-2">
       <span
         v-if="editMode && groupIndex != null"
-        class="group-drag-handle cursor-grab select-none text-fg-dimmed hover:text-fg text-base"
+        class="group-drag-handle absolute left-0 top-1/2 -translate-y-1/2 cursor-grab select-none text-fg-dimmed hover:text-fg text-base"
         title="Drag group"
       >
         ⠿
@@ -11,7 +11,7 @@
       <input
         v-if="editMode && groupIndex != null"
         v-model="groupTitleDraft"
-        class="bg-transparent border-b border-fg/30 focus:outline-none focus:border-fg font-light"
+        class="bg-transparent border-0 p-0 m-0 font-light focus:outline-none focus:ring-1 focus:ring-fg/20 rounded"
         @keyup.enter="commitGroupTitle"
         @blur="commitGroupTitle"
       >

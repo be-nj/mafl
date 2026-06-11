@@ -20,6 +20,26 @@
           @change="saveLink(($event.target as HTMLInputElement).value)"
         >
       </label>
+
+      <div class="space-y-1">
+        <span class="text-xs text-fg-dimmed">Tags</span>
+        <div class="flex flex-wrap gap-1 items-center">
+          <span
+            v-for="(tag, key) in tags"
+            :key="key"
+            class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-fg/10"
+          >
+            {{ tagLabel(tag) }}
+            <button class="hover:text-red-500" @click="removeTag(tagLabel(tag))">✕</button>
+          </span>
+          <input
+            v-model="tagDraft"
+            placeholder="+ tag"
+            class="text-xs bg-fg/5 rounded px-2 py-1 w-20 focus:outline-none"
+            @keyup.enter="addTag"
+          >
+        </div>
+      </div>
       <label class="flex items-center gap-2">
         <input
           type="checkbox"
@@ -74,6 +94,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Tag } from '~/types'
+
 interface StatusShape {
   enabled?: boolean
   interval?: number
@@ -86,11 +108,13 @@ const props = defineProps<{
   index?: number
   link?: string
   status?: StatusShape
+  tags?: (string | Tag)[]
   secretKeys?: string[]
 }>()
 
-const { setStatus, setSecret, saveField } = useAdmin()
+const { setStatus, setSecret, saveField, setTags } = useAdmin()
 const open = ref(false)
+const tagDraft = ref('')
 
 async function saveLink(value: string) {
   if (props.index == null) {
@@ -103,6 +127,40 @@ async function saveLink(value: string) {
     // eslint-disable-next-line no-alert
     alert(e?.data?.statusMessage || e?.statusMessage || 'Save failed')
   }
+}
+
+function tagLabel(tag: string | Tag): string {
+  return typeof tag === 'string' ? tag : tag.name
+}
+
+function tagNames(): string[] {
+  return (props.tags ?? []).map(tagLabel)
+}
+
+async function writeTags(tags: string[]) {
+  if (props.index == null) {
+    return
+  }
+
+  try {
+    await setTags(props.groupIndex ?? null, props.index, tags)
+  } catch (e: any) {
+    // eslint-disable-next-line no-alert
+    alert(e?.data?.statusMessage || e?.statusMessage || 'Save failed')
+  }
+}
+
+function addTag() {
+  const name = tagDraft.value.trim()
+  tagDraft.value = ''
+
+  if (name && !tagNames().includes(name)) {
+    writeTags([...tagNames(), name])
+  }
+}
+
+function removeTag(name: string) {
+  writeTags(tagNames().filter((tag) => tag !== name))
 }
 
 async function patch(part: Record<string, unknown>) {
