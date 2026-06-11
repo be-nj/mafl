@@ -28,6 +28,9 @@ export interface Service {
   options?: Record<string, any>
   secrets?: Record<string, any>
   server?: Record<string, any>
+  // Names of configured secret keys, exposed to the client for the editor.
+  // The values are never sent — only their presence (see ADR 0001).
+  secretKeys?: string[]
 }
 
 export type ServiceClient<T> = Omit<T, 'secrets' | 'server'>

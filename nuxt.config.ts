@@ -2,6 +2,19 @@ import process from 'node:process'
 
 export default defineNuxtConfig({
   srcDir: 'src',
+  runtimeConfig: {
+    // Auth Providers for the inline editor. With none configured no request is
+    // ever Admin (refuse-by-default) and the editor stays off.
+    // Token provider:
+    adminToken: process.env.MAFL_ADMIN_TOKEN || '',
+    // forward-auth provider: trust a group header injected by a trusted proxy.
+    // Only safe if the app is not reachable bypassing that proxy (see ADR 0001).
+    auth: {
+      groupsHeader: process.env.MAFL_AUTH_GROUPS_HEADER || '',
+      groupsSeparator: process.env.MAFL_AUTH_GROUPS_SEPARATOR || ',',
+      adminGroup: process.env.MAFL_AUTH_ADMIN_GROUP || '',
+    },
+  },
   app: {
     head: {
       link: [

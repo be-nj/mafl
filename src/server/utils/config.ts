@@ -1,4 +1,7 @@
 import crypto from 'node:crypto'
+import { rename, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import process from 'node:process'
 import yaml from 'yaml'
 import defu from 'defu'
 import { ZodError } from 'zod'
@@ -29,6 +32,34 @@ function determineService(items: DraftService[], tags: TagMap): Service[] {
 }
 
 export const configFileName = 'config.yml'
+
+/**
+ * Atomically overwrite the config file (write to a temp file, then rename).
+ * The rename is what the storage watcher observes, so clients never read a
+ * half-written file. The `data` storage base is `./data` (see nuxt.config).
+ */
+export async function writeConfigFile(content: string): Promise<void> {
+  const path = join(process.cwd(), 'data', configFileName)
+  const tmp = `${path}.${crypto.randomUUID()}.tmp`
+
+  await writeFile(tmp, content, 'utf8')
+  await rename(tmp, path)
+}
+
+/**
+ * Short content hash of a raw config string. Used as an optimistic-concurrency
+ * token: an Edit Op carries the hash it was authored against, so a save can be
+ * rejected if the file changed underneath it (another admin, a hand-edit).
+ */
+export function hashConfig(raw: string): string {
+  return crypto.createHash('sha256').update(raw).digest('hex').slice(0, 16)
+}
+
+export async function getRawConfigHash(): Promise<string> {
+  const storage = useStorage('data')
+
+  return hashConfig(await storage.getItem<string>(configFileName) || '')
+}
 
 export function getDefaultConfig(): CompleteConfig {
   return {

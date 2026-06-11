@@ -1,6 +1,6 @@
 <template>
-  <div 
-    v-if="backgroundUrl" 
+  <div
+    v-if="backgroundUrl"
     class="fixed inset-0 -z-10"
     :style="backgroundStyle"
   />
@@ -11,8 +11,10 @@ const { $settings } = useNuxtApp()
 
 const backgroundUrl = computed(() => {
   const bg = $settings.background
-  
-  if (!bg) return null
+
+  if (!bg) {
+    return null
+  }
 
   if (bg.url) {
     return bg.url
@@ -27,7 +29,7 @@ const backgroundUrl = computed(() => {
 
 const backgroundStyle = computed(() => {
   const bg = $settings.background
-  
+
   if (!backgroundUrl.value) {
     return {}
   }

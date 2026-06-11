@@ -1,0 +1,53 @@
+title: Verify Run
+services:
+  Media:
+    - title: Plex
+      description: Media server
+      link: https://plex.example.com
+      icon:
+        name: simple-icons:plex
+        color: "#e5a00d"
+      status:
+        enabled: true
+        url: https://plex.example.com
+      secrets:
+        apiKey: SUPER-SECRET-VALUE
+      tags:
+        - streaming
+    - title: Jellyfin
+      description: Streaming
+      link: https://jelly.example.com
+      icon:
+        name: simple-icons:jellyfin
+        color: "#00a4dc"
+    - title: Sonarr
+      description: Series manager
+      link: https://sonarr.example.com
+      icon:
+        name: simple-icons:sonarr
+        color: "#35c5f0"
+    - title: Radarr
+      description: Movie manager
+      link: https://radarr.example.com
+      icon:
+        name: simple-icons:radarr
+        color: "#ffc230"
+    - title: Bazarr
+      description: Subtitles
+      link: https://bazarr.example.com
+      tags:
+        - subs
+        - infra
+  Tools:
+    - title: Router
+      description: Network
+      link: https://router.lan
+      icon:
+        name: simple-icons:opnsense
+    - title: Portainer
+      description: Containers
+      link: https://portainer.lan
+      icon:
+        color: "#13bef9"
+  New group:
+    - title: New service

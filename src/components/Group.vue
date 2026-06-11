@@ -1,26 +1,134 @@
 <template>
   <div class="py-10">
-    <h2 v-if="title" class="text-2xl font-light py-2 px-4">
-      {{ title }}
-    </h2>
-    <div :class="gridClasses">
-      <template v-for="item in items" :key="item.id">
-        <Item v-bind="item" />
+    <h2 v-if="title" class="group relative text-2xl font-light py-2 px-4 flex items-center gap-2">
+      <span
+        v-if="editMode && groupIndex != null"
+        class="group-drag-handle absolute left-0 top-1/2 -translate-y-1/2 mt-[3px] cursor-grab select-none text-fg-dimmed hover:text-fg text-base transition-opacity duration-150 opacity-0 group-hover:opacity-100"
+        title="Drag group"
+      >
+        ⠿
+      </span>
+      <input
+        v-if="editMode && groupIndex != null"
+        v-model="groupTitleDraft"
+        class="bg-transparent border-0 p-0 m-0 font-light focus:outline-none focus:ring-1 focus:ring-fg/20 rounded"
+        @keyup.enter="commitGroupTitle"
+        @blur="commitGroupTitle"
+      >
+      <template v-else>
+        {{ title }}
       </template>
+      <button
+        v-if="editMode && groupIndex != null"
+        class="text-fg-dimmed hover:text-red-500 transition-all duration-150 opacity-0 group-hover:opacity-100"
+        title="Delete group"
+        @click="onDeleteGroup"
+      >
+        <Icon name="mdi:trash-can-outline" class="w-5 h-5" />
+      </button>
+    </h2>
+
+    <div v-if="editMode" :class="gridClasses">
+      <draggable
+        tag="div"
+        class="contents"
+        :list="items"
+        :group="{ name: 'services' }"
+        item-key="id"
+        handle=".service-drag-handle"
+        :animation="150"
+        ghost-class="opacity-40"
+        :data-group-index="groupIndex ?? 0"
+        @end="onServiceDragEnd"
+      >
+        <template #item="{ element, index }">
+          <div class="relative group">
+            <span
+              class="service-drag-handle absolute -left-2 top-1/2 -translate-y-1/2 z-20 text-xl leading-none cursor-grab select-none text-fg-dimmed/60 hover:text-fg transition-opacity duration-150 opacity-0 group-hover:opacity-100"
+              title="Drag to reorder"
+            >
+              ⠿
+            </span>
+            <Item v-bind="element" :group-index="groupIndex" :index="index" />
+          </div>
+        </template>
+      </draggable>
+      <button
+        class="flex items-center justify-center min-h-24 rounded-2xl border-2 border-dashed border-fg/15 text-fg-dimmed hover:border-fg/30 hover:text-fg transition-all"
+        @click="addService(groupIndex ?? null)"
+      >
+        + Add service
+      </button>
+    </div>
+
+    <div v-else :class="gridClasses">
+      <Item
+        v-for="item in items"
+        :key="item.id"
+        v-bind="item"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import draggable from 'vuedraggable'
 import type { Layout, Service } from '~/types'
 
 export interface Props {
   title?: string
   items: Service[]
   grid: Layout['grid']
+  groupIndex?: number
 }
 
 const props = defineProps<Props>()
+
+const { editMode, addService, deleteGroup, renameGroup, moveService } = useAdmin()
+
+function onServiceDragEnd(event: { from: HTMLElement, to: HTMLElement, oldIndex: number, newIndex: number }) {
+  const fromGroup = Number(event.from.dataset.groupIndex)
+  const toGroup = Number(event.to.dataset.groupIndex)
+
+  if (fromGroup === toGroup && event.oldIndex === event.newIndex) {
+    return
+  }
+
+  // vuedraggable already moved the item in the bound lists; just persist.
+  moveService(fromGroup, event.oldIndex, toGroup, event.newIndex)
+}
+
+const groupTitleDraft = ref(props.title ?? '')
+watch(() => props.title, (value) => {
+  groupTitleDraft.value = value ?? ''
+})
+
+function onDeleteGroup() {
+  if (props.groupIndex == null) {
+    return
+  }
+
+  // eslint-disable-next-line no-alert
+  if (confirm(`Delete group "${props.title}" and its ${props.items.length} services?`)) {
+    deleteGroup(props.groupIndex)
+  }
+}
+
+async function commitGroupTitle() {
+  const value = groupTitleDraft.value.trim()
+
+  if (props.groupIndex == null || !value || value === (props.title ?? '')) {
+    return
+  }
+
+  try {
+    await renameGroup(props.groupIndex, value)
+  } catch (e: any) {
+    groupTitleDraft.value = props.title ?? ''
+    // eslint-disable-next-line no-alert
+    alert(e?.data?.statusMessage || e?.statusMessage || 'Rename failed')
+  }
+}
 
 const gridClasses = computed(() => [
   'grid',
