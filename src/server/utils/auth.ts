@@ -1,5 +1,6 @@
 import { Buffer } from 'node:buffer'
 import { timingSafeEqual } from 'node:crypto'
+import process from 'node:process'
 import type { H3Event } from 'h3'
 
 const TOKEN_HEADER = 'x-mafl-admin-token'
@@ -25,8 +26,11 @@ function tokensMatch(a: string, b: string): boolean {
  * the header is forgeable (see ADR 0001).
  */
 function isAdminByForwardAuth(event: H3Event): boolean {
-  const { auth } = useRuntimeConfig(event)
-  const { groupsHeader, groupsSeparator, adminGroup } = auth
+  // Read at runtime (not via runtimeConfig): nuxt.config's process.env is
+  // evaluated at build time, so the container's env wouldn't take effect.
+  const groupsHeader = process.env.MAFL_AUTH_GROUPS_HEADER || ''
+  const adminGroup = process.env.MAFL_AUTH_ADMIN_GROUP || ''
+  const separator = process.env.MAFL_AUTH_GROUPS_SEPARATOR || ','
 
   if (!adminGroup || !groupsHeader) {
     return false
@@ -39,7 +43,7 @@ function isAdminByForwardAuth(event: H3Event): boolean {
   }
 
   return raw
-    .split(groupsSeparator || ',')
+    .split(separator)
     .map((group) => group.trim())
     .includes(adminGroup)
 }
@@ -49,7 +53,7 @@ function isAdminByForwardAuth(event: H3Event): boolean {
  * (`MAFL_ADMIN_TOKEN`) and the request carries the matching token.
  */
 function isAdminByToken(event: H3Event): boolean {
-  const { adminToken } = useRuntimeConfig(event)
+  const adminToken = process.env.MAFL_ADMIN_TOKEN || ''
 
   if (!adminToken) {
     return false
@@ -57,7 +61,7 @@ function isAdminByToken(event: H3Event): boolean {
 
   const provided = getRequestHeader(event, TOKEN_HEADER)
 
-  return Boolean(provided) && tokensMatch(provided as string, adminToken as string)
+  return Boolean(provided) && tokensMatch(provided as string, adminToken)
 }
 
 /**
