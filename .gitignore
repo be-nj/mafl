@@ -22,3 +22,6 @@ logs
 .env
 .env.*
 !.env.example
+
+# runtime data volume (config.yml etc.)
+/data/
