@@ -28,7 +28,7 @@ Changes save instantly and every open browser updates itself. Your `config.yml` 
 
 ```yaml
 background:
-  image: wallpaper.jpg   # drop the file in data/backgrounds/
+  image: wallpaper.jpg # drop the file in data/backgrounds/
   opacity: 0.8
   blur: 3
 ```

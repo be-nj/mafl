@@ -1,19 +1,45 @@
+# Mafl — `be-nj` fork
+
+Upstream [hywax/mafl](https://github.com/hywax/mafl) `main`, plus a browser-based editor and four open upstream PRs, in one drop-in image. Same `config.yml`, nothing to migrate.
+
+```yaml
+services:
+  mafl:
+    image: ghcr.io/be-nj/mafl:integration # amd64; per-commit tags: integration-<sha>
+```
+
+**Edit the dashboard in the browser** — admin-only, and off entirely unless you configure auth
+
+* Rename services and edit descriptions and links in place
+* Set icons by Iconify name, by URL, or upload your own image
+* Edit tags, per-card status checks, and write-only API keys
+* Add, delete and drag services between groups
+* Add, rename, reorder and delete groups
+* Saves instantly; every open browser updates itself
+* Enable with a shared admin token, or with the group header your forward-auth proxy (Authentik, Authelia, oauth2-proxy, …) already sends
+
+**Backported from open upstream PRs**
+
+* Background images from `data/backgrounds/` or an external `url`, with `opacity` and `blur` — [#188](https://github.com/hywax/mafl/pull/188)
+* Icons from a mounted folder, served at `/icons/…` — no image rebuild to add a logo — [#190](https://github.com/hywax/mafl/pull/190)
+* `status.url` separate from the link you click — [#192](https://github.com/hywax/mafl/pull/192)
+* Non-square icons keep their aspect ratio instead of being squashed — [#193](https://github.com/hywax/mafl/pull/193)
+
 > [!NOTE]
-> **This is the `integration` branch of a fork.** It bundles [hywax/mafl](https://github.com/hywax/mafl) `main` with four open upstream PRs:
-> [#188](https://github.com/hywax/mafl/pull/188) custom background images ·
-> [#190](https://github.com/hywax/mafl/pull/190) icons from Docker volume mounts ·
-> [#192](https://github.com/hywax/mafl/pull/192) separate status URL from service link ·
-> [#193](https://github.com/hywax/mafl/pull/193) icon aspect-ratio fix
->
-> A multi-arch image (amd64/arm64) is published on every push:
->
-> ```yaml
-> services:
->   mafl:
->     image: ghcr.io/be-nj/mafl:integration
-> ```
->
-> Immutable per-commit tags are available as `integration-<sha>`. Once the PRs are merged upstream, use the official `hywax/mafl` image instead.
+> Saving from the editor rewrites the whole `config.yml`, which drops any comments in it. Once the four PRs land upstream, switch back to the official `hywax/mafl` image.
+
+<p align="center">
+  <img src="docs/public/fork/edit-mode.png" alt="Edit mode: ghost add-service tiles, group handles, add-group row" width="100%"/>
+  <br/><em>Edit mode — add, drag and delete services and groups in place</em>
+  <br/><br/>
+  <img src="docs/public/fork/card-settings.png" alt="Per-card settings popover with link, tags, status check and interval" width="49%"/>
+  <img src="docs/public/fork/dashboard.png" alt="Dashboard with a custom background image" width="49%"/>
+  <br/><em>Per-card settings (link, tags, status URL, secrets) · a custom background image</em>
+</p>
+
+Short version: [WHATS-NEW.md](./WHATS-NEW.md) · Full detail and security notes: [CHANGELOG-FORK.md](./CHANGELOG-FORK.md)
+
+---
 
 <h1 align="center">Mafl</h1>
 <p align="center">
